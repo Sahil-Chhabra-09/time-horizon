@@ -1,0 +1,197 @@
+.timeline-view {
+  position: relative;
+  background: linear-gradient(to bottom, #0f172a, #000);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  min-height: 600px;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Timeline spine */
+.timeline-line {
+  position: absolute;
+  left: 3rem;
+  top: 2rem;
+  bottom: 2rem;
+  width: 4px;
+  background: linear-gradient(to bottom, #22c55e, #facc15, #fb923c, #3b82f6);
+  opacity: 0.3;
+  border-radius: 4px;
+}
+
+/* Wrapper for items */
+.timeline-items {
+  position: relative;
+  overflow: hidden;
+  padding-left: 4rem;
+  min-height: 550px;
+  transition: min-height 0.3s ease;
+}
+
+/* “NOW” marker */
+.timeline-now {
+  position: absolute;
+  left: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: top 0.5s ease;
+  z-index: 20;
+  width: 100%;
+}
+
+.timeline-now .dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+}
+
+.timeline-now .label {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 100%;
+  border-bottom: 2px dashed #9ca3af71;
+}
+
+/* Task wrappers on the timeline */
+.timeline-task-wrapper {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: top 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+  z-index: 10;
+}
+
+/* Dots beside each task */
+.timeline-dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 4px solid #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+/* Regular and overdue tasks share same base look */
+.timeline-task,
+.timeline-task-overdue {
+  min-width: 300px;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.timeline-task:hover,
+.timeline-task-overdue:hover {
+  background: #2d3748;
+  transform: translateX(6px);
+}
+
+/* Task structure */
+.timeline-task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.timeline-task h4 {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  display: inline;
+  margin-right: 0.5rem;
+}
+
+.timeline-task p {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0.1rem 0;
+}
+
+.timeline-task .time-remaining {
+  color: #d1d5db;
+}
+
+.timeline-task .timestamp {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Category label */
+.category {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+/* Delete button */
+.delete-btn {
+  color: #94a3b8;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Overdue toggle button */
+.toggle-overdue-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-overdue-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive fallback */
+@media (max-width: 640px) {
+  .timeline-view {
+    padding: 1.25rem;
+  }
+  .timeline-line {
+    left: 1.5rem;
+  }
+  .timeline-items {
+    padding-left: 2.5rem;
+  }
+  .timeline-task,
+  .timeline-task-overdue {
+    min-width: 220px;
+  }
+}
