@@ -1,4 +1,3 @@
-/**\*\***\***\*\*** ✨ Windsurf Command ⭐ **\*\***\***\*\***/
 
 # Time Horizon
 
