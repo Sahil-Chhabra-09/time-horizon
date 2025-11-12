@@ -35,13 +35,10 @@ Time Horizon is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Acknowledgments
 
-Time Horizon was built by [Your Name] using the following libraries:
+Time Horizon was built by Sahil Chhabra using the following libraries:
 
 - React
 - Lucide-react
 - Vite
 
-## Contact
 
-If you have any questions or need help with Time Horizon, feel free to reach out to me at [Your Email] or [Your Twitter Handle].
-/**\*\*\*** 3bebbc8e-1668-454a-9c18-c887062fe536 **\*\*\***/
