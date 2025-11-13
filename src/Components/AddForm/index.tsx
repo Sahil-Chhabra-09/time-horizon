@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { X, PlusCircle, Calendar } from "lucide-react";
 import { NewTask } from "../../Pages/Hero";
 import "./styles.css";

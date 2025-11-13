@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, AlertCircle, Download } from "lucide-react";
 import "./styles.css";
 import { ClockCard } from "../../Components/ClockCard";
 import { AddFormModal } from "../../Components/AddForm";
+import { EditFormModal } from "../../Components/EditForm";
 import TimelineView from "../TimelineView";
+import CompletedTasksView from "../CompletedTasks";
 import { TimeRemaining } from "../../Types/TimeRemaining";
+import { playAudio } from "../../Utilities/playAudio";
 
 export interface Task {
   id: number;
@@ -13,6 +16,8 @@ export interface Task {
   deadline: number; // timestamp (ms)
   category: string;
   description?: string;
+  completed?: boolean;
+  completed_at?: number;
 }
 
 export interface NewTask {
@@ -22,12 +27,29 @@ export interface NewTask {
   description?: string;
 }
 
-type PageViewType = "grid" | "timeline";
+type PageViewType = "grid" | "timeline" | "completed";
+
+// Initialize tasks from localStorage synchronously
+const getInitialTasks = (): Task[] => {
+  try {
+    const stored = localStorage.getItem("timeHorizonTasks");
+    if (stored) {
+      const parsed = JSON.parse(stored) as Task[];
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    console.warn("Failed to load tasks from localStorage");
+  }
+  return [];
+};
 
 const TimeHorizonApp: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(getInitialTasks);
   const [view, setView] = useState<PageViewType>("grid");
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [showEditForm, setShowEditForm] = useState<boolean>(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editedTask, setEditedTask] = useState<Partial<Task>>({});
   const [newTask, setNewTask] = useState<NewTask>({
     name: "",
     deadline: "",
@@ -46,20 +68,17 @@ const TimeHorizonApp: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Load tasks from localStorage
+  // Request notification permission on mount (for background alerts)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("timeHorizonTasks");
-      if (stored) {
-        const parsed = JSON.parse(stored) as Task[];
-        if (Array.isArray(parsed)) setTasks(parsed);
-      }
-    } catch {
-      console.warn("Failed to load tasks from localStorage");
+    if ("Notification" in window && Notification.permission === "default") {
+      // Request permission (user interaction may be required on some browsers)
+      Notification.requestPermission().catch((err) => {
+        console.warn("Failed to request notification permission:", err);
+      });
     }
   }, []);
 
-  // Save tasks to localStorage
+  // Save tasks to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("timeHorizonTasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -115,15 +134,57 @@ const TimeHorizonApp: React.FC = () => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => a.deadline - b.deadline);
+  const editTask = (id: number, updates: Partial<Task>): void => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  };
+
+  const completeTask = (id: number): void => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, completed: true, completed_at: Date.now() } : t
+      )
+    );
+    // Play success audio
+    const baseUrl = (import.meta as any).env?.BASE_URL || "/time-horizon/";
+    const isPageVisible = !document.hidden;
+    if (isPageVisible) {
+      playAudio(`${baseUrl}audio/success.wav`, 10);
+    }
+  };
+
+  const clearCompletedTasks = (): void => {
+    setTasks((prev) => prev.filter((t) => !t.completed));
+  };
+
+  // Filter tasks based on view
+  const activeTasks = tasks.filter((t) => !t.completed);
+  const completedTasks = tasks.filter((t) => t.completed);
+  const sortedTasks = [...activeTasks].sort((a, b) => a.deadline - b.deadline);
+  const sortedCompletedTasks = [...completedTasks].sort(
+    (a, b) => (b.completed_at || 0) - (a.completed_at || 0)
+  );
 
   const closeForm = (): void => {
     setShowAddForm(false);
     setNewTask({ name: "", deadline: "", category: "work" });
   };
 
+  const closeEditForm = (): void => {
+    setShowEditForm(false);
+    setEditingTask(null);
+    setEditedTask({});
+  };
+
   const onCardClick = ({ task }: { task: Task }) => {
-    // placeholder for edit or expand behavior
+    setEditingTask(task);
+    setEditedTask({
+      name: task.name,
+      category: task.category,
+      description: task.description,
+    });
+    setShowEditForm(true);
   };
 
   return (
@@ -160,6 +221,13 @@ const TimeHorizonApp: React.FC = () => {
           >
             Timeline
           </button>
+          <button
+            className={view === "completed" ? "active" : ""}
+            onClick={() => setView("completed")}
+          >
+            Completed{" "}
+            {completedTasks.length > 0 && `(${completedTasks.length})`}
+          </button>
         </div>
 
         <div className="action-buttons">
@@ -181,13 +249,41 @@ const TimeHorizonApp: React.FC = () => {
         />
       )}
 
-      {tasks.length === 0 ? (
+      {showEditForm && editingTask && (
+        <EditFormModal
+          task={editingTask}
+          editTask={editTask}
+          closeForm={closeEditForm}
+          editedTask={editedTask}
+          setEditedTask={setEditedTask}
+        />
+      )}
+
+      {view === "completed" ? (
+        <CompletedTasksView
+          completedTasks={sortedCompletedTasks}
+          clearCompletedTasks={clearCompletedTasks}
+          deleteTask={deleteTask}
+        />
+      ) : view === "timeline" ? (
+        sortedTasks.length === 0 ? (
+          <div className="empty-state">
+            <AlertCircle size={48} />
+            <p>No active tasks. Add one to see your time horizon.</p>
+          </div>
+        ) : (
+          <TimelineView
+            tasks={sortedTasks}
+            now={now}
+            deleteTask={deleteTask}
+            onCardClick={onCardClick}
+          />
+        )
+      ) : sortedTasks.length === 0 ? (
         <div className="empty-state">
           <AlertCircle size={48} />
-          <p>No tasks yet. Add one to see your time horizon.</p>
+          <p>No active tasks. Add one to see your time horizon.</p>
         </div>
-      ) : view === "timeline" ? (
-        <TimelineView tasks={tasks} now={now} deleteTask={deleteTask} />
       ) : (
         <div className="grid-view">
           {sortedTasks.map((task) => (
@@ -195,6 +291,7 @@ const TimeHorizonApp: React.FC = () => {
               key={task.id}
               task={task}
               deleteTask={deleteTask}
+              completeTask={completeTask}
               now={now}
               onCardClick={onCardClick}
             />

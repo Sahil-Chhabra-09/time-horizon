@@ -4,15 +4,15 @@
   "description": "Track your life's commitments and deadlines visually.",
   "icons": [
     {
-      "src": "/universe.svg",
+      "src": "/time-horizon/universe.svg",
       "sizes": "800x800",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ],
-  "start_url": ".",
+  "start_url": "/time-horizon/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
-  "scope": "/"
+  "scope": "/time-horizon/"
 }

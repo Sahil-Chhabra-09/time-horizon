@@ -11,12 +11,14 @@ interface TimelineViewProps {
   tasks: Task[];
   now: number;
   deleteTask: (id: number) => void;
+  onCardClick?: ({ task }: { task: Task }) => void;
 }
 
 const TimelineView: React.FC<TimelineViewProps> = ({
   tasks,
   now,
   deleteTask,
+  onCardClick,
 }) => {
   const [showOverdue, setShowOverdue] = useState(true);
 
@@ -156,6 +158,8 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                 className={`timeline-task ${
                   isOverdue ? "timeline-task-overdue" : ""
                 }`}
+                onClick={() => onCardClick?.({ task })}
+                style={{ cursor: onCardClick ? "pointer" : "default" }}
               >
                 <div className="timeline-task-header">
                   <div className="flex-1">
@@ -172,7 +176,10 @@ const TimelineView: React.FC<TimelineViewProps> = ({
                     </p>
                   </div>
                   <button
-                    onClick={() => deleteTask(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTask(task.id);
+                    }}
                     className="delete-btn"
                   >
                     <X size={14} />
